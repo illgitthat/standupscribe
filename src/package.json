@@ -13,6 +13,7 @@
     "package": "node scripts/clean-dist.js && electron-builder --win nsis && node scripts/clean-unpacked.js",
     "package:dir": "node scripts/clean-dist.js && electron-builder --win dir",
     "package:portable": "node scripts/clean-dist.js && electron-builder --win portable && node scripts/clean-unpacked.js",
+    "package:release": "node scripts/clean-dist.js && electron-builder --win nsis portable && node scripts/clean-unpacked.js",
     "verify:api": "node src/smoke-test.js"
   },
   "devDependencies": {
@@ -63,7 +64,11 @@
       "installerIcon": "ui/assets/standup-scribe.ico",
       "shortcutName": "Standup Scribe",
       "uninstallerIcon": "ui/assets/standup-scribe.ico",
-      "uninstallDisplayName": "Standup Scribe"
+      "uninstallDisplayName": "Standup Scribe",
+      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}-${arch}.${ext}"
     }
   },
   "dependencies": {
