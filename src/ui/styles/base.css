@@ -1,0 +1,77 @@
+html,
+body {
+  box-sizing: border-box;
+  margin: 0;
+  min-height: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  background: var(--rr-color-bg);
+  color: var(--rr-color-text);
+  font-family: var(--rr-font-body);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.35);
+  color: var(--rr-color-text);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.rr-toast {
+  position: fixed;
+  top: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  z-index: 9000;
+  background: var(--rr-color-card);
+  border: 1px solid var(--rr-color-border);
+  color: var(--rr-color-text);
+  font: 600 0.84rem var(--rr-font-body);
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--rr-radius-pill);
+  box-shadow: var(--rr-shadow-lg);
+  opacity: 1;
+  transition: opacity 300ms var(--rr-ease), transform 300ms var(--rr-ease);
+  animation: rr-toast-in 350ms var(--rr-ease-spring) both;
+  pointer-events: none;
+}
+
+.rr-toast--hiding {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-8px);
+}
+
+@keyframes rr-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}

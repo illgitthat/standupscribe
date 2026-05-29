@@ -1,0 +1,62 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap");
+
+:root {
+  --rr-font-heading: "Manrope", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --rr-font-body: "Manrope", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --rr-color-bg: #0b1220;
+  --rr-color-bg-strong: #111827;
+  --rr-color-text: #e2e8f0;
+  --rr-color-text-muted: #94a3b8;
+  --rr-color-text-faint: #64748b;
+  --rr-color-border: #1f2937;
+  --rr-color-border-strong: #334155;
+  --rr-color-primary: #2563eb;
+  --rr-color-primary-hover: #1d4ed8;
+  --rr-color-primary-subtle: rgba(37, 99, 235, 0.18);
+  --rr-color-accent: #7c3aed;
+  --rr-color-accent-subtle: rgba(124, 58, 237, 0.18);
+  --rr-color-success-bg: rgba(34, 197, 94, 0.16);
+  --rr-color-success-text: #86efac;
+  --rr-color-warning-bg: rgba(245, 158, 11, 0.16);
+  --rr-color-warning-text: #fbbf24;
+  --rr-color-paused-bg: rgba(245, 158, 11, 0.12);
+  --rr-color-paused-text: #fbbf24;
+  --rr-color-danger: #f87171;
+  --rr-color-danger-bg: rgba(239, 68, 68, 0.15);
+  --rr-color-card: #111827;
+  --rr-color-card-solid: #111827;
+  --rr-color-panel: #0f172a;
+  --rr-color-input: #1e293b;
+  --rr-color-input-focus: #1e293b;
+  --rr-radius-sm: 0.5rem;
+  --rr-radius-md: 0.625rem;
+  --rr-radius-lg: 0.875rem;
+  --rr-radius-pill: 999px;
+  --rr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --rr-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --rr-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --rr-shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --rr-blur: blur(8px);
+  --rr-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --rr-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes rr-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rr-fade-in-scale {
+  from { opacity: 0; transform: scale(0.97) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes rr-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes rr-pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

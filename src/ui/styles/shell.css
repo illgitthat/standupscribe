@@ -1,0 +1,133 @@
+.rr-app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.rr-app-topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 24px;
+  background: linear-gradient(180deg, #111827 0%, #0b1220 100%);
+  border-bottom: 1px solid var(--rr-color-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.rr-app-brand-cluster {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rr-app-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #ffffff;
+  font: 700 13px var(--rr-font-body);
+  letter-spacing: 0.04em;
+}
+
+.rr-app-topbar-copy {
+  min-width: 0;
+}
+
+.rr-app-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rr-app-brand {
+  margin: 0;
+  color: var(--rr-color-text);
+  font: 600 16px var(--rr-font-heading);
+  letter-spacing: -0.01em;
+}
+
+.rr-app-backend-pill {
+  border-radius: 999px;
+  background: var(--rr-color-primary-subtle);
+  color: var(--rr-color-text-muted);
+  font: 600 11px var(--rr-font-body);
+  letter-spacing: 0.02em;
+  padding: 3px 8px;
+  border: 1px solid var(--rr-color-border);
+}
+
+.rr-app-backend-pill[data-tone="ready"] {
+  background: var(--rr-color-success-bg);
+  color: var(--rr-color-success-text);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.rr-app-backend-pill[data-tone="warning"] {
+  background: var(--rr-color-warning-bg);
+  color: var(--rr-color-warning-text);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.rr-app-nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.rr-app-nav-button {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--rr-color-text-muted);
+  cursor: pointer;
+  font: 600 13px var(--rr-font-body);
+  padding: 6px 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: background 180ms var(--rr-ease), color 180ms var(--rr-ease);
+}
+
+.rr-app-nav-button:hover {
+  color: var(--rr-color-text);
+  background: var(--rr-color-card);
+}
+
+.rr-app-nav-button:focus-visible {
+  outline: 2px solid var(--rr-color-primary);
+  outline-offset: 2px;
+}
+
+.rr-app-nav-button[data-active="true"] {
+  background: var(--rr-color-primary);
+  border-color: var(--rr-color-primary);
+  color: #ffffff;
+}
+
+.rr-app-page {
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 680px) {
+  .rr-app-topbar {
+    flex-wrap: wrap;
+    padding: 10px 16px;
+  }
+  .rr-app-nav {
+    width: 100%;
+    margin-left: 0;
+  }
+  .rr-app-nav-button {
+    flex: 1;
+    justify-content: center;
+  }
+}

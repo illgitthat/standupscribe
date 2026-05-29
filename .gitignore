@@ -1,0 +1,39 @@
+# Local editor and agent tooling
+.agents/
+skills-lock.json
+
+# Secrets
+**/.env
+**/.env.*
+!**/.env.example
+**/.dev.vars
+**/.dev.vars.*
+
+# Reference / temp
+.reference-realtime-poc/
+**/start.log
+**/standupscribe-startup.log
+*.log
+
+# Build artifacts
+**/dist/
+**/node_modules/
+**/local-data/
+**/test_profile/
+**/models/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Native build artifacts
+**/native/bin/
+**/target/
+
+# Build/debug debris
+build*.txt
+build-output.txt
+*.tmp
+
