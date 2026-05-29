@@ -35,14 +35,10 @@ jobs:
         run: npm install
 
       - name: Build NSIS installer
-        run: npm run package
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run package -- --publish never
 
       - name: Build portable executable
-        run: npm run package:portable
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run package:portable -- --publish never
 
       - name: List build artifacts
         shell: pwsh
