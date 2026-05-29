@@ -1,0 +1,1655 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/assets/standup-scribe-icon-256.png" />
+  <title>StandupScribe</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; background: #0b1220; color: #e2e8f0; margin: 0; padding: 0; min-height: 100vh; }
+    header.appbar { display: flex; align-items: center; gap: 14px; padding: 12px 24px; background: linear-gradient(180deg, #111827 0%, #0b1220 100%); border-bottom: 1px solid #1f2937; }
+    header.appbar .brand-mark { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #2563eb, #7c3aed); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; letter-spacing: 0.04em; }
+    header.appbar h1 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+    header.appbar .ver { font-size: 11px; color: #64748b; margin-left: 4px; }
+    header.appbar .spacer { flex: 1; }
+    header.appbar a.nav { display: inline-flex; align-items: center; gap: 6px; color: #cbd5e1; font-size: 13px; text-decoration: none; padding: 6px 10px; border-radius: 6px; transition: background 0.15s; }
+    header.appbar a.nav:hover { background: #1e293b; color: #e2e8f0; }
+    header.appbar a.nav svg { width: 14px; height: 14px; }
+    .layout { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 57px); }
+    aside.sidebar { background: #0b1220; border-right: 1px solid #1f2937; padding: 14px; overflow-y: auto; max-height: calc(100vh - 57px); }
+    aside.sidebar h3 { margin: 0 0 10px; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+    .session-item { position: relative; padding: 8px 10px 8px 11px; border-left: 3px solid transparent; border-radius: 8px; cursor: pointer; font-size: 13px; color: #cbd5e1; transition: background 0.12s, border-color 0.12s, box-shadow 0.12s; margin-bottom: 2px; }
+    .session-item:hover { background: rgba(30,41,59,0.72); }
+    .session-item.active { background: rgba(37,99,235,0.10); border-left-color: #3b82f6; box-shadow: inset 0 1px 0 rgba(255,255,255,0.03); }
+    .session-item.active .title { color: #e2e8f0; font-weight: 700; }
+    .session-item .title { display: flex; align-items: center; gap: 6px; font-weight: 500; padding-right: 22px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .session-item .title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .session-item .meta { color: #64748b; font-size: 11px; margin-top: 3px; }
+    .session-pill { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; padding: 1px 6px; border-radius: 999px; }
+    .session-pill.live { background: rgba(34,197,94,0.18); color:#86efac; border:1px solid rgba(34,197,94,0.35); }
+    .session-item .delete-btn {
+      position: absolute; top: 6px; right: 6px;
+      width: 22px; height: 22px;
+      display: none; align-items: center; justify-content: center;
+      background: transparent; border: 0; border-radius: 4px;
+      color: #94a3b8; cursor: pointer; padding: 0;
+      transition: background 0.12s, color 0.12s;
+    }
+    .session-item:hover .delete-btn { display: inline-flex; }
+    .session-item .delete-btn:hover { background: rgba(239, 68, 68, 0.18); color: #f87171; }
+    .session-item .delete-btn:disabled { opacity: 0.5; cursor: wait; }
+    .session-item .delete-btn svg { width: 14px; height: 14px; pointer-events: none; }
+    main.content { padding: 18px 24px; min-width: 0; }
+    p.sub { margin: 0 0 16px; color: #94a3b8; font-size: 13px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+    button { background: #2563eb; color: #fff; border: 0; border-radius: 6px; padding: 8px 14px; font-size: 14px; cursor: pointer; transition: background 0.15s; }
+    button:hover:not(:disabled) { background: #1d4ed8; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.danger { background: #dc2626; }
+    button.danger:hover:not(:disabled) { background: #b91c1c; }
+    button.ghost { background: #334155; }
+    select { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; padding: 6px 10px; font-size: 13px; }
+    label { font-size: 13px; color: #cbd5e1; }
+    .status { display: none; }
+    .listen-control { display: inline-flex; align-items: center; gap: 9px; min-width: 154px; justify-content: center; padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%); box-shadow: 0 8px 22px rgba(37,99,235,0.28), inset 0 1px 0 rgba(255,255,255,0.18); transition: background 0.15s, box-shadow 0.15s, transform 0.15s, opacity 0.15s; }
+    .listen-control:hover:not(:disabled) { background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%); transform: translateY(-1px); }
+    .listen-control.is-connected, .listen-control.is-error { background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 8px 22px rgba(220,38,38,0.28), inset 0 1px 0 rgba(255,255,255,0.16); }
+    .listen-control.is-connected:hover:not(:disabled), .listen-control.is-error:hover:not(:disabled) { background: linear-gradient(180deg, #f87171 0%, #dc2626 100%); }
+    .listen-control.is-error #status-text { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .listen-control:disabled { opacity: 0.78; }
+    #stop-btn { display: none; }
+    .dot { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; box-shadow: 0 0 0 3px rgba(148,163,184,0.12); }
+    .dot.connected { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.18); }
+    .dot.error { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.18); }
+    .dot.connecting { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.16); animation: pulse 1.2s infinite; }
+    .session-tag { display: none; }
+    @keyframes pulse { 50% { opacity: 0.35; } }
+    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-top: 8px; }
+    .pane { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 14px; height: calc(100vh - 230px); overflow: auto; }
+    .pane h2 { margin: 0 0 10px; font-size: 13px; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+    /* Transcript pane uses flex column so summary pins top, chat pins bottom, and transcripts scroll in middle */
+    #transcript-pane { display: flex; flex-direction: column; overflow: hidden; }
+    #transcript { flex: 1; overflow-y: auto; min-height: 100px; }
+    .line { padding: 8px 10px 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 14px; line-height: 1.5; border-left: 3px solid transparent; }
+    .line.partial { opacity: 0.65; font-style: italic; }
+    .line.final { background: #1e293b; }
+    .line.from-you { background: rgba(59,130,246,0.10); border-left-color: #3b82f6; }
+    .line.from-ai { background: rgba(167,139,250,0.10); border-left-color: #a78bfa; }
+    .line .ts { color: #64748b; font-size: 11px; margin-right: 8px; }
+    .action { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 13px; }
+    .action .name { font-weight: 600; color: #60a5fa; }
+    .action .args { color: #cbd5e1; font-family: ui-monospace, monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; margin-top: 4px; max-height: 200px; overflow: auto; }
+    .action .src, .action .meta { color: #94a3b8; font-size: 11px; margin-top: 6px; }
+    .action .status-line { margin-top: 8px; font-size: 12px; }
+    .action .error { color: #fca5a5; }
+    .action .ok { color: #86efac; }
+    .action .actions { display: flex; gap: 8px; margin-top: 10px; }
+    .events { font-family: ui-monospace, monospace; font-size: 11px; color: #64748b; }
+    .events div { padding: 2px 0; }
+    /* When events are inline inside the unified Activity pane */
+    .event-line { font-family: ui-monospace, monospace; font-size: 11px; color: #64748b; padding: 3px 6px; border-left: 2px solid #1f2937; margin: 4px 0; line-height: 1.4; }
+    .event-line .ts { color: #475569; margin-right: 6px; }
+    /* Action status pills */
+    .action .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: middle; letter-spacing: 0.02em; text-transform: uppercase; }
+    .pill.proposed { background: rgba(245, 158, 11, 0.16); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
+    .pill.taken { background: rgba(34, 197, 94, 0.18); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.35); }
+    .pill.dismissed { background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
+    .pill.reverted { background: rgba(124, 58, 237, 0.18); color: #c4b5fd; border: 1px solid rgba(124, 58, 237, 0.35); }
+    .pill.failed { background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); }
+    .action .verb { font-weight: 600; font-size: 14px; color: #e2e8f0; }
+    .action .wi-line { margin-top: 6px; font-size: 13px; color: #cbd5e1; line-height: 1.45; }
+    .action .wi-line a { color: #93c5fd; text-decoration: none; font-family: ui-monospace, monospace; }
+    .action .wi-line a:hover { text-decoration: underline; }
+    .action .wi-line .wi-type { display: inline-block; font-size: 10px; color: #94a3b8; background: rgba(148,163,184,0.12); padding: 1px 6px; border-radius: 4px; vertical-align: middle; }
+    .action .wi-line .wi-new { color: #fbbf24; font-style: italic; }
+    .action .detail-line { margin-top: 4px; font-size: 13px; color: #94a3b8; line-height: 1.45; }
+    .action .summary-line { margin-top: 4px; font-size: 12px; color: #94a3b8; font-style: italic; }
+    .action details.why { margin-top: 6px; font-size: 12px; color: #64748b; }
+    .action details.why summary { cursor: pointer; user-select: none; padding: 2px 0; }
+    .action details.why summary::-webkit-details-marker { display: none; }
+    .action details.why summary::before { content: "▸ "; }
+    .action details.why[open] summary::before { content: "▾ "; }
+    .action details.why div { margin-top: 4px; padding: 6px 8px; background: rgba(0,0,0,0.2); border-left: 2px solid #334155; color: #94a3b8; line-height: 1.45; }
+    /* Quiet mode picker */
+    .card-mode-picker { grid-template-columns: repeat(2, minmax(138px, 1fr)); border-radius: 16px; }
+    .card-mode-picker .mode-card { padding: 7px 10px; border-radius: 12px; gap: 8px; }
+    .card-mode-picker .mode-card .icon { font-size: 14px; }
+    .card-mode-picker .mode-card strong { font-size: 12px; }
+    .card-mode-picker .mode-card small { font-size: 10px; }
+    .mode-picker { display: inline-grid; grid-template-columns: repeat(2, minmax(185px, 1fr)); gap: 4px; padding: 4px; background: rgba(30,41,59,0.72); border: 1px solid #334155; border-radius: 18px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04); }
+    .mode-card { display: flex; align-items: center; gap: 9px; min-width: 0; background: transparent; color: #94a3b8; border: 0; border-radius: 14px; padding: 8px 11px; text-align: left; transition: background 0.15s, color 0.15s, box-shadow 0.15s; }
+    .mode-card:hover:not(:disabled) { background: rgba(148,163,184,0.08); color: #e2e8f0; }
+    .mode-card.on { background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%); color: #fff; box-shadow: 0 6px 18px rgba(37,99,235,0.28), inset 0 1px 0 rgba(255,255,255,0.18); }
+    .mode-card .icon { font-size: 16px; line-height: 1; }
+    .mode-card .copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .mode-card strong { font-size: 13px; line-height: 1.1; font-weight: 700; }
+    .mode-card small { font-size: 11px; line-height: 1.25; color: inherit; opacity: 0.78; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* Quiet-batch banner */
+    .quiet-batch-banner { background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+    .quiet-batch-banner button { background: #fbbf24; color: #0b1220; border: 0; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .summary-card-prominent { background: #0b1220; border: 1px solid #1f2937; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+    .summary-card-prominent h3, .chat-box h3 { margin: 0; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    .summary-card-prominent h3 { margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .summary-card-prominent .body { font-size: 13px; line-height: 1.55; color: #e2e8f0; white-space: pre-wrap; max-height: 250px; overflow: auto; }
+    .summary-card-prominent .body.loading { color: #94a3b8; font-style: italic; }
+    /* Chat box at bottom of transcript pane */
+    .chat-box { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; background: #0b1220; border: 1px solid #1f2937; border-radius: 8px; padding: 10px; }
+    .chat-history { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .chat-history .msg { padding: 6px 10px; border-radius: 8px; font-size: 13px; line-height: 1.45; white-space: pre-wrap; }
+    .chat-history .msg.user { background: #1e3a8a; color: #ffffff; align-self: flex-end; max-width: 80%; }
+    .chat-history .msg.assistant { background: #1e293b; color: #e2e8f0; align-self: flex-start; max-width: 90%; }
+    .chat-history .msg.error { background: rgba(239,68,68,0.18); color: #fca5a5; align-self: flex-start; max-width: 90%; }
+    .chat-history .msg .role { display: block; font-size: 10px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+    .line .speaker { font-size: 10px; font-weight: 800; margin-right: 8px; text-transform: uppercase; letter-spacing: 0.08em; padding: 1px 6px; border-radius: 999px; vertical-align: 2px; }
+    .line.from-you .speaker { background: rgba(59,130,246,0.18); color: #93c5fd; }
+    .line.from-ai .speaker { background: rgba(167,139,250,0.18); color: #c4b5fd; }
+    .line .speaker { color: #38bdf8; }
+    .chat-input-row { display: flex; gap: 6px; }
+    .chat-input { flex: 1; background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 38px; max-height: 120px; }
+    .chat-input:focus { outline: 0; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.2); }
+    .chat-input:disabled { opacity: 0.55; }
+    .chat-send { background: #2563eb; color: #fff; border: 0; border-radius: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; align-self: stretch; }
+    .chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+    .chat-empty { color: #64748b; font-style: italic; font-size: 12px; padding: 4px 2px; }
+    .empty { color: #475569; font-style: italic; font-size: 13px; }
+    .empty-state { min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; color: #64748b; padding: 24px 18px; }
+    .empty-state .empty-icon { font-size: 32px; line-height: 1; opacity: 0.72; }
+    .empty-state .empty-headline { font-size: 14px; font-weight: 700; color: #cbd5e1; }
+    .empty-state .empty-subline { max-width: 320px; font-size: 12px; line-height: 1.4; color: #64748b; }
+    .empty-state.compact { min-height: 92px; padding: 16px 10px; gap: 5px; }
+    .empty-state.compact .empty-icon { font-size: 22px; }
+    .empty-state.compact .empty-headline { font-size: 12px; }
+    .empty-state.compact .empty-subline { font-size: 11px; }
+    .empty-spinner { width: 28px; height: 28px; border-radius: 999px; border: 2px solid rgba(148,163,184,0.20); border-top-color: #94a3b8; animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .activity-heading { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 12px; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+    .activity-count { color: #64748b; font-weight: 600; }
+    #activity-actions { margin-bottom: 10px; }
+    #activity-log-wrap { border-top: 1px solid #1f2937; padding-top: 10px; }
+    #activity-log-wrap summary { cursor: pointer; color: #94a3b8; font-size: 12px; font-weight: 700; user-select: none; }
+    #activity-log-wrap summary::-webkit-details-marker { display: none; }
+    #activity-log-wrap summary::before { content: "▸ "; color: #64748b; }
+    #activity-log-wrap[open] summary::before { content: "▾ "; }
+    #activity-log { margin-top: 8px; }
+    .context-banner { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; font-size: 12px; color: #cbd5e1; }
+    .context-banner summary { cursor: pointer; user-select: none; }
+    .context-banner summary::-webkit-details-marker { display: none; }
+    .context-banner summary::before { content: "▸ "; color: #64748b; }
+    .context-banner[open] summary::before { content: "▾ "; }
+    .context-banner .wi-list { margin: 8px 0 0; padding: 0; list-style: none; max-height: 240px; overflow: auto; }
+    .context-banner .wi-list li { padding: 3px 0; border-top: 1px solid #1f2937; font-size: 12px; line-height: 1.4; color: #94a3b8; }
+    .context-banner .wi-list li:first-child { border-top: 0; }
+    .context-banner .wi-id { color: #93c5fd; font-family: ui-monospace, monospace; }
+    .context-banner .wi-state { color: #fbbf24; }
+    a { color: #93c5fd; }
+  </style>
+</head>
+<body>
+  <header class="appbar">
+    <div class="brand-mark">SS</div>
+    <h1>StandupScribe</h1>
+    <div class="spacer"></div>
+    <a class="nav" href="/index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"></path><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6 1.65 1.65 0 0 0-.4 1.06V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8.6 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 0-1.06-.4H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8.6a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-.6 1.65 1.65 0 0 0 .4-1.06V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15.4 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.37.37.7.6 1 .3.28.66.42 1.06.42H21a2 2 0 1 1 0 4h-.09c-.4 0-.76.14-1.06.4-.23.3-.46.63-.6 1Z"></path></svg>Settings</a>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <h3>Sessions</h3>
+      <div id="sessions-list"><div class="empty">No sessions yet.</div></div>
+    </aside>
+
+    <main class="content">
+      <p class="sub">Listens to your standups and drafts the Azure DevOps updates for you.</p>
+
+      <div class="row">
+        <button id="start-btn" class="listen-control is-idle" type="button"><span id="status-dot" class="dot"></span><span id="status-text">Start listening</span></button>
+        <button id="stop-btn" class="danger" disabled>Stop</button>
+        <span class="mode-picker" aria-label="Listening mode">
+          <button id="convo-meeting" type="button" class="mode-card on" aria-pressed="true" title="Meeting mode captures your microphone and shared system audio.">
+            <span class="icon">👥</span>
+            <span class="copy"><strong>Meeting</strong><small>Everyone in call · mic + meeting audio</small></span>
+          </button>
+          <button id="convo-1on1" type="button" class="mode-card" aria-pressed="false" title="Conversation mode listens only to your microphone and lets the AI speak back.">
+            <span class="icon">🎙️</span>
+            <span class="copy"><strong>Conversation</strong><small>Just you + AI · mic only</small></span>
+          </button>
+        </span>
+        <span class="mode-picker card-mode-picker" title="Quiet mode: hide proposed-action cards during the call; review them all at the end. Recommended for live use." aria-label="Card reveal mode">
+          <button id="mode-live" type="button" class="mode-card on">
+            <span class="icon">⚡</span>
+            <span class="copy"><strong>Live</strong><small>Show proposals as they arrive</small></span>
+          </button>
+          <button id="mode-quiet" type="button" class="mode-card">
+            <span class="icon">🤫</span>
+            <span class="copy"><strong>Quiet</strong><small>Hold until I stop listening</small></span>
+          </button>
+        </span>
+        <span id="session-tag" class="session-tag">Session: —</span>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div class="pane" id="transcript-pane">
+            <h2>Live transcript</h2>
+            <div id="summary-card" class="summary-card-prominent" hidden>
+              <h3>📝 Meeting summary</h3>
+              <div class="body"></div>
+            </div>
+            <div id="transcript"><div class="empty-state"><div class="empty-icon">🎙️</div><div class="empty-headline">Ready when you are</div><div class="empty-subline">Press Start listening to begin transcribing.</div></div></div>
+            <div class="chat-box" id="chat-box" hidden>
+              <h3>💬 Ask about this meeting</h3>
+              <div class="chat-history" id="chat-history"><div class="chat-empty">Try: "what did we decide?", "any blockers?", "list action items by owner".</div></div>
+              <div class="chat-input-row">
+                <textarea class="chat-input" id="chat-input" rows="1" placeholder="Ask a question about this meeting…"></textarea>
+                <button class="chat-send" id="chat-send" type="button">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="pane" id="activity-pane" style="height: calc(100vh - 230px);">
+            <h2>Activity</h2>
+            <div id="activity">
+              <h3 class="activity-heading">Needs review <span id="activity-count" class="activity-count">· 0</span></h3>
+              <div id="activity-actions"><div class="empty-state"><div class="empty-icon">✅</div><div class="empty-headline">Nothing to review yet</div><div class="empty-subline">Proposed Azure DevOps changes will appear here as the call progresses.</div></div></div>
+              <details id="activity-log-wrap" open><summary>Live activity</summary><div id="activity-log"></div></details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+<script>
+const API_BASE = "http://127.0.0.1:12453";
+let pc = null;
+let dc = null;
+let stream = null;
+let audioCtx = null;
+let currentSessionId = "";
+let currentSessionConfig = null;
+
+const transcriptEl = document.getElementById("transcript");
+const activityEl = document.getElementById("activity");
+const activityActionsEl = document.getElementById("activity-actions");
+const activityLogWrapEl = document.getElementById("activity-log-wrap");
+const activityLogEl = document.getElementById("activity-log");
+const activityCountEl = document.getElementById("activity-count");
+// Backwards-compat: many code paths still reference actionsEl/eventsEl.
+const actionsEl = activityActionsEl || activityEl;
+const eventsEl = activityLogEl || activityEl;
+const statusDot = document.getElementById("status-dot");
+const statusText = document.getElementById("status-text");
+const startBtn = document.getElementById("start-btn");
+const stopBtn = document.getElementById("stop-btn");
+const sessionTag = document.getElementById("session-tag");
+const sourceSelect = document.getElementById("source-select");
+
+const partials = new Map();
+const functionCallArgs = new Map();
+const functionCallNames = new Map();
+const recentFinalTranscripts = [];
+
+function setStatus(state, text) {
+  const normalized = state === 'connected' ? 'connected' : (state === 'connecting' ? 'connecting' : (state === 'error' ? 'error' : ''));
+  statusDot.className = "dot " + normalized;
+  const label = normalized === 'connected'
+    ? 'Stop listening'
+    : normalized === 'connecting'
+      ? 'Connecting…'
+      : normalized === 'error'
+        ? String(text || 'Something went wrong')
+        : 'Start listening';
+  statusText.textContent = label;
+  if (startBtn) {
+    startBtn.classList.remove('is-idle', 'is-connecting', 'is-connected', 'is-error');
+    startBtn.classList.add('is-' + (normalized || 'idle'));
+    startBtn.disabled = normalized === 'connecting';
+    startBtn.title = currentSessionId
+      ? (text ? text + ' · ' : '') + 'Session ' + currentSessionId.slice(0, 8)
+      : (text || label);
+  }
+}
+
+function setSessionTag(sessionId) {
+  currentSessionId = sessionId || "";
+  sessionTag.textContent = "Session: " + (currentSessionId ? currentSessionId.slice(0, 8) : "—");
+  if (startBtn) startBtn.title = currentSessionId ? "Session " + currentSessionId.slice(0, 8) : "Start listening";
+}
+
+const sessionsListEl = document.getElementById("sessions-list");
+let viewingSessionId = null;       // for past-session viewer mode
+let liveSessionInProgress = false; // true between Start and Stop
+
+function buildEmptyState({ icon = '', headline = '', subline = '', compact = false, spinning = false } = {}) {
+  const iconHtml = spinning ? '<div class="empty-spinner" aria-hidden="true"></div>' : '<div class="empty-icon">' + escapeHtml(icon) + '</div>';
+  return '<div class="empty-state' + (compact ? ' compact' : '') + '">'
+    + iconHtml
+    + '<div class="empty-headline">' + escapeHtml(headline) + '</div>'
+    + (subline ? '<div class="empty-subline">' + escapeHtml(subline) + '</div>' : '')
+    + '</div>';
+}
+
+function transcriptReadyEmpty() {
+  return buildEmptyState({ icon: '🎙️', headline: 'Ready when you are', subline: 'Press Start listening to begin transcribing.' });
+}
+
+function activityEmptyState() {
+  return buildEmptyState({ icon: '✅', headline: 'Nothing to review yet', subline: 'Proposed Azure DevOps changes will appear here as the call progresses.' });
+}
+
+function resetActivityUi({ actionsHtml = activityEmptyState(), logHtml = '' } = {}) {
+  if (activityActionsEl) activityActionsEl.innerHTML = actionsHtml;
+  if (activityLogEl) activityLogEl.innerHTML = logHtml;
+  updateActivityLogDisclosure();
+}
+
+function updateActivityLogDisclosure() {
+  if (!activityActionsEl || !activityLogWrapEl) return;
+  const visibleCards = activityActionsEl.querySelectorAll('.action:not([hidden])').length;
+  if (activityCountEl) activityCountEl.textContent = '· ' + visibleCards;
+  activityLogWrapEl.open = visibleCards === 0;
+}
+
+function formatSessionDateLabel(startAtUnixSeconds) {
+  const seconds = Number(startAtUnixSeconds || 0);
+  if (!seconds) return '—';
+  const d = new Date(seconds * 1000);
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const dayDiff = Math.round((startOfToday - startOfDate) / 86400000);
+  const time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  if (dayDiff === 0) return time;
+  if (dayDiff === 1) return 'Yesterday ' + time;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' · ' + time;
+}
+
+async function refreshSessions() {
+  if (!sessionsListEl) return;
+  try {
+    const meetings = await apiFetch("/api/meeting/");
+    if (!Array.isArray(meetings) || meetings.length === 0) {
+      sessionsListEl.innerHTML = buildEmptyState({ icon: '🗂️', headline: 'No sessions yet', compact: true });
+      return;
+    }
+    const sorted = [...meetings].sort((a, b) => {
+      const ax = a.last_activity_at ?? a.start_at ?? 0;
+      const bx = b.last_activity_at ?? b.start_at ?? 0;
+      return bx - ax;
+    });
+    sessionsListEl.innerHTML = "";
+    for (const m of sorted.slice(0, 30)) {
+      const item = document.createElement("div");
+      const activeId = liveSessionInProgress ? currentSessionId : viewingSessionId;
+      item.className = "session-item" + (m.meeting_id === activeId ? " active" : "");
+      const title = escapeHtml(m.title || "Untitled");
+      const dateStr = formatSessionDateLabel(m.start_at);
+      const transcriptCount = Number(m.transcript_count ?? 0);
+      const livePill = (m.meeting_id === currentSessionId && liveSessionInProgress) ? '<span class="session-pill live">LIVE</span>' : '';
+      item.innerHTML = '<div class="title"><span class="title-text">' + title + '</span>' + livePill + "</div>"
+        + '<div class="meta">' + dateStr + " · " + transcriptCount + " transcript" + (transcriptCount === 1 ? "" : "s") + "</div>"
+        + '<button class="delete-btn" type="button" data-action="delete-session" title="Delete session" aria-label="Delete session">'
+        + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        + '<polyline points="3 6 5 6 21 6"></polyline>'
+        + '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>'
+        + '<path d="M10 11v6M14 11v6"></path>'
+        + '<path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path>'
+        + '</svg></button>';
+      item.addEventListener("click", (event) => {
+        if (event.target.closest('[data-action="delete-session"]')) return; // handled below
+        if (liveSessionInProgress && m.meeting_id === currentSessionId) return; // ignore click on current live
+        void viewSession(m.meeting_id);
+      });
+      const deleteBtn = item.querySelector('[data-action="delete-session"]');
+      if (deleteBtn) {
+        deleteBtn.addEventListener("click", async (event) => {
+          event.stopPropagation();
+          event.preventDefault();
+          await deleteSession(m, deleteBtn);
+        });
+      }
+      sessionsListEl.appendChild(item);
+    }
+  } catch (error) {
+    logEvent("failed to load sessions: " + error.message);
+  }
+}
+refreshSessions();
+setInterval(refreshSessions, 15000);
+
+async function deleteSession(meeting, button) {
+  const id = meeting?.meeting_id;
+  if (!id) return;
+  const title = meeting.title || "this session";
+  if (!confirm("Delete \"" + title + "\"? This removes its transcripts and proposed actions. Cannot be undone.")) return;
+  if (liveSessionInProgress && id === currentSessionId) {
+    alert("This session is currently live. Stop it before deleting.");
+    return;
+  }
+  if (button) {
+    button.disabled = true;
+    button.title = "Deleting…";
+  }
+  try {
+    const response = await fetch(API_BASE + "/api/meeting/" + encodeURIComponent(id), { method: "DELETE" });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || ("delete failed: " + response.status));
+    }
+    logEvent("deleted session " + id);
+    if (viewingSessionId === id) {
+      viewingSessionId = null;
+      setSessionTag("");
+      transcriptEl.innerHTML = transcriptReadyEmpty();
+      resetActivityUi();
+      setStatus("", "idle");
+    }
+    await refreshSessions();
+  } catch (error) {
+    logEvent("failed to delete session: " + error.message);
+    alert("Couldn't delete session: " + error.message);
+    if (button) {
+      button.disabled = false;
+      button.title = "Delete session";
+    }
+  }
+}
+
+async function viewSession(meetingId) {
+  if (liveSessionInProgress) {
+    if (!confirm("Stop the current live session and view this past one?")) return;
+    stop({ preserveStatus: false });
+  }
+  viewingSessionId = meetingId;
+  setStatus("", "viewing past session");
+  setSessionTag(meetingId);
+  transcriptEl.innerHTML = buildEmptyState({ spinning: true, headline: 'Loading transcripts…' });
+  resetActivityUi({ actionsHtml: buildEmptyState({ spinning: true, headline: 'Loading actions…' }) });
+  try {
+    const [transcripts, actions, meeting] = await Promise.all([
+      apiFetch("/api/meeting/" + encodeURIComponent(meetingId) + "/transcripts"),
+      apiFetch("/api/meetings/" + encodeURIComponent(meetingId) + "/proposed-actions"),
+      apiFetch("/api/meeting/" + encodeURIComponent(meetingId)),
+    ]);
+    transcriptEl.innerHTML = "";
+    const tArr = Array.isArray(transcripts) ? transcripts : [];
+    if (tArr.length === 0) {
+      transcriptEl.innerHTML = buildEmptyState({ icon: '🎙️', headline: 'No transcripts in this session', subline: 'This session ended before any transcript lines were saved.' });
+    } else {
+      tArr.sort((a, b) => (a.created_at ?? 0) - (b.created_at ?? 0));
+      for (const t of tArr) {
+        appendTranscriptLine({
+          text: t.text || "",
+          speakerLabel: t.speaker_label || "",
+          createdAt: t.created_at ? Number(t.created_at) : Date.now(),
+        });
+      }
+    }
+    // Show summary (in pinned card at top of pane) and enable chat
+    showSummaryCard(meeting?.summary || "");
+    enableChat(meetingId);
+    resetActivityUi({ actionsHtml: '' });
+    const aArr = Array.isArray(actions) ? actions : [];
+    if (aArr.length === 0) {
+      if (activityActionsEl) activityActionsEl.innerHTML = buildEmptyState({ icon: '✅', headline: 'No actions in this session', subline: 'There were no proposed Azure DevOps changes to review.' });
+      updateActivityLogDisclosure();
+    } else {
+      aArr.sort((a, b) => (b.created_at ?? 0) - (a.created_at ?? 0));
+      for (const a of aArr) {
+        renderActionCard(a);
+      }
+    }
+    logEvent("viewing past session " + meetingId);
+    void refreshSessions();
+  } catch (error) {
+    transcriptEl.innerHTML = buildEmptyState({ icon: '⚠️', headline: 'Failed to load session', subline: error.message });
+  }
+}
+
+function logEvent(text) {
+  const target = activityLogEl || activityEl;
+  const line = document.createElement("div");
+  line.className = "event-line";
+  line.innerHTML = '<span class="ts">' + new Date().toLocaleTimeString() + '</span>'
+    + '<span></span>';
+  line.querySelector("span:last-child").textContent = text;
+  const banner = target.querySelector('.context-banner');
+  if (banner && banner.nextSibling) {
+    target.insertBefore(line, banner.nextSibling);
+  } else if (banner) {
+    target.appendChild(line);
+  } else {
+    target.prepend(line);
+  }
+  const events = target.querySelectorAll(".event-line");
+  if (events.length > 80) {
+    for (let i = 80; i < events.length; i++) events[i].remove();
+  }
+  updateActivityLogDisclosure();
+}
+
+function clearEmpty(parent) {
+  if (!parent) return;
+  parent.querySelectorAll(".empty, .empty-state").forEach((empty) => empty.remove());
+}
+
+function resetSessionUi() {
+  transcriptEl.innerHTML = transcriptReadyEmpty();
+  resetActivityUi();
+  partials.clear();
+  functionCallArgs.clear();
+  functionCallNames.clear();
+  recentFinalTranscripts.length = 0;
+  quietQueue.clear();
+  if (typeof hideSummaryCard === 'function') hideSummaryCard();
+  if (typeof disableChat === 'function') disableChat();
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function speakerClass(speakerLabel) {
+  const normalized = String(speakerLabel || "").trim().toLowerCase();
+  if (normalized === "you") return "from-you";
+  if (normalized === "ai") return "from-ai";
+  return "";
+}
+
+function appendTranscriptLine({ itemId = "", text = "", speakerLabel = "", partial = false, createdAt = Date.now() } = {}) {
+  clearEmpty(transcriptEl);
+  const el = document.createElement("div");
+  const speakerCls = speakerClass(speakerLabel);
+  el.className = "line " + (partial ? "partial" : "final") + (speakerCls ? " " + speakerCls : "");
+  if (itemId) el.dataset.itemId = itemId;
+  const ts = createdAt ? new Date(Number(createdAt)).toLocaleTimeString() : new Date().toLocaleTimeString();
+  const labelHtml = speakerLabel ? '<span class="speaker">' + escapeHtml(speakerLabel) + '</span>' : '';
+  el.innerHTML = '<span class="ts">' + ts + '</span>' + labelHtml + '<span class="text"></span>';
+  el.querySelector(".text").textContent = text;
+  transcriptEl.appendChild(el);
+  autoScrollTranscript();
+  return el;
+}
+
+async function apiFetch(path, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  if (options.body && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+  const response = await fetch(API_BASE + path, { ...options, headers });
+  const text = await response.text();
+  let payload = null;
+  try {
+    payload = text ? JSON.parse(text) : null;
+  } catch {
+    payload = null;
+  }
+  if (!response.ok) {
+    const error = new Error(payload?.detail || text || ("Request failed: " + response.status));
+    error.payload = payload;
+    error.status = response.status;
+    throw error;
+  }
+  return payload?.result ?? payload;
+}
+
+function getOrCreatePartial(itemId, speakerLabel = "") {
+  let el = partials.get(itemId);
+  if (!el) {
+    el = appendTranscriptLine({ itemId, speakerLabel, partial: true });
+    partials.set(itemId, el);
+  }
+  return el;
+}
+
+function autoScrollTranscript() {
+  // Auto-scroll only if user is near the bottom (within 80px)
+  const slop = 80;
+  const nearBottom = transcriptEl.scrollHeight - transcriptEl.scrollTop - transcriptEl.clientHeight < slop;
+  if (nearBottom) {
+    transcriptEl.scrollTop = transcriptEl.scrollHeight;
+  }
+}
+
+function rememberFinalTranscript(text) {
+  const trimmed = String(text || "").trim();
+  if (!trimmed) return;
+  recentFinalTranscripts.push(trimmed);
+  while (recentFinalTranscripts.length > 3) recentFinalTranscripts.shift();
+}
+
+function getTranscriptContext() {
+  return recentFinalTranscripts.slice(-3).join("\n");
+}
+
+async function persistTranscript(evt) {
+  if (!currentSessionId) return;
+  const text = String(evt.transcript || "").trim();
+  if (!text) return;
+  try {
+    await apiFetch("/api/listen/transcript", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: currentSessionId,
+        item_id: evt.item_id || "",
+        text,
+        start_ms: evt.audio_start_ms ?? evt.start_ms ?? null,
+        end_ms: evt.audio_end_ms ?? evt.end_ms ?? null,
+        speaker_label: evt.speaker_label ?? evt.speakerLabel ?? null,
+      }),
+    });
+  } catch (error) {
+    logEvent("failed to persist transcript: " + error.message);
+  }
+}
+
+function finalizeTranscript(evt) {
+  const itemId = evt.item_id;
+  const text = String(evt.transcript || "").trim();
+  if (!text) {
+    const el = partials.get(itemId);
+    if (el && !el.querySelector(".text")?.textContent.trim()) el.remove();
+    partials.delete(itemId);
+    return;
+  }
+  const speakerLabel = convoMode === 'conversation' ? 'You' : '';
+  let el = partials.get(itemId);
+  if (!el) {
+    el = appendTranscriptLine({ itemId, speakerLabel });
+  } else if (speakerLabel && !el.querySelector('.speaker')) {
+    const label = document.createElement('span');
+    label.className = 'speaker';
+    label.textContent = speakerLabel;
+    const textSpan = el.querySelector('.text');
+    el.insertBefore(label, textSpan);
+  }
+  el.className = "line final" + (speakerLabel ? " " + speakerClass(speakerLabel) : "");
+  el.querySelector(".text").textContent = text;
+  partials.delete(itemId);
+  rememberFinalTranscript(text);
+  autoScrollTranscript();
+  void persistTranscript({ ...evt, speaker_label: speakerLabel || null });
+}
+
+function recordFunctionCallItem(evt) {
+  const item = evt?.item;
+  if (!item || item.type !== "function_call" || !item.call_id) return;
+  if (item.name) functionCallNames.set(item.call_id, item.name);
+  if (typeof item.arguments === "string") functionCallArgs.set(item.call_id, item.arguments);
+}
+
+function sendFunctionCallOutput(callId, payload) {
+  if (!dc || dc.readyState !== "open" || !callId) return;
+  try {
+    dc.send(JSON.stringify({
+      type: "conversation.item.create",
+      item: {
+        type: "function_call_output",
+        call_id: callId,
+        output: JSON.stringify(payload || {}),
+      },
+    }));
+    dc.send(JSON.stringify({ type: "response.create" }));
+  } catch (error) {
+    logEvent("failed to acknowledge tool call: " + error.message);
+  }
+}
+
+function renderContextBanner(workItems) {
+  const target = activityLogEl || activityEl;
+  const existing = target.querySelector('.context-banner');
+  if (existing) existing.remove();
+  if (!Array.isArray(workItems) || workItems.length === 0) return;
+  const banner = document.createElement('details');
+  banner.className = 'context-banner';
+  let listItems = '';
+  for (const w of workItems) {
+    const id = w.id ? '<span class="wi-id">#' + escapeHtml(w.id) + '</span>' : '<span class="wi-id">—</span>';
+    const type = w.type ? ' <span style="color:#64748b">&lt;' + escapeHtml(w.type) + '&gt;</span>' : '';
+    const title = escapeHtml(w.title || '(untitled)');
+    const state = w.state ? ' <span class="wi-state">[' + escapeHtml(w.state) + ']</span>' : '';
+    listItems += '<li>' + id + type + ' ' + title + state + '</li>';
+  }
+  banner.innerHTML = '<summary>📋 Loaded ' + workItems.length + ' active work items into model context</summary>'
+    + '<ul class="wi-list">' + listItems + '</ul>';
+  target.insertBefore(banner, target.firstChild);
+  updateActivityLogDisclosure();
+}
+
+function statusPill(action) {
+  if (action.undone_at) return { cls: "reverted", label: "Reverted" };
+  switch (action.status) {
+    case "applied":      return { cls: "taken", label: "Taken" };
+    case "auto_applied": return { cls: "taken", label: "Auto-taken" };
+    case "rejected":     return { cls: "dismissed", label: "Dismissed" };
+    case "failed":       return { cls: "failed", label: "Failed" };
+    case "pending":
+    default:             return { cls: "proposed", label: "Proposed" };
+  }
+}
+
+function statusSummary(action) {
+  if (action.undone_at) return '';
+  if (action.status === "applied" || action.status === "auto_applied") {
+    if (action.ado_item_url) {
+      return '<a href="' + escapeHtml(action.ado_item_url) + '" target="_blank" rel="noreferrer">Open in ADO →</a>';
+    }
+    return '';
+  }
+  if (action.status === "failed") {
+    return '<span class="error">' + escapeHtml(action.error || "Unknown error") + '</span>';
+  }
+  return '';
+}
+
+// Look up a work item title from the pre-fetched cache so cards can show "#12345: Login Refactor"
+function lookupWorkItem(idLike) {
+  const id = String(idLike ?? "").replace(/^#/, "").trim();
+  if (!id || !currentSessionConfig) return null;
+  const list = currentSessionConfig.prefetched_work_items || [];
+  return list.find((w) => String(w.id) === id) || null;
+}
+
+// Quiet mode: when 'quiet', proposed-action cards are queued and revealed at end of call.
+// Default is 'live'. Toggle persists per browser session via localStorage.
+let cardMode = (() => {
+  try { return localStorage.getItem('ss_card_mode') || 'live'; } catch { return 'live'; }
+})();
+const quietQueue = new Set();
+function setCardMode(mode) {
+  cardMode = (mode === 'quiet') ? 'quiet' : 'live';
+  try { localStorage.setItem('ss_card_mode', cardMode); } catch {}
+  const liveBtn = document.getElementById('mode-live');
+  const quietBtn = document.getElementById('mode-quiet');
+  if (liveBtn && quietBtn) {
+    liveBtn.classList.toggle('on', cardMode === 'live');
+    quietBtn.classList.toggle('on', cardMode === 'quiet');
+    liveBtn.setAttribute('aria-pressed', cardMode === 'live' ? 'true' : 'false');
+    quietBtn.setAttribute('aria-pressed', cardMode === 'quiet' ? 'true' : 'false');
+  }
+  if (cardMode === 'live') {
+    revealQuietCards();
+  } else {
+    updateQuietBanner();
+  }
+}
+function updateQuietBanner() {
+  const target = activityLogEl || activityEl;
+  let banner = target.querySelector('.quiet-batch-banner');
+  if (cardMode !== 'quiet' || quietQueue.size === 0) {
+    if (banner) banner.remove();
+    return;
+  }
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.className = 'quiet-batch-banner';
+    const ctx = target.querySelector('.context-banner');
+    if (ctx && ctx.nextSibling) target.insertBefore(banner, ctx.nextSibling);
+    else if (ctx) target.appendChild(banner);
+    else target.prepend(banner);
+  }
+  banner.innerHTML = '<span>🤫 Quiet mode — <strong>' + quietQueue.size + '</strong> proposal' + (quietQueue.size === 1 ? '' : 's') + ' waiting</span><button id="reveal-now-btn">Show now</button>';
+  const btn = banner.querySelector('#reveal-now-btn');
+  if (btn) btn.addEventListener('click', revealQuietCards);
+}
+function revealQuietCards() {
+  const banner = (activityLogEl || activityEl).querySelector('.quiet-batch-banner');
+  if (banner) banner.remove();
+  const ids = Array.from(quietQueue);
+  quietQueue.clear();
+  for (const id of ids) {
+    const card = (activityActionsEl || activityEl).querySelector('[data-action-id="' + id + '"]');
+    if (card) card.removeAttribute('hidden');
+  }
+  updateActivityLogDisclosure();
+}
+const liveBtnEl = document.getElementById('mode-live');
+const quietBtnEl = document.getElementById('mode-quiet');
+if (liveBtnEl) liveBtnEl.addEventListener('click', () => setCardMode('live'));
+if (quietBtnEl) quietBtnEl.addEventListener('click', () => setCardMode('quiet'));
+// Apply initial mode after DOM is ready
+setTimeout(() => setCardMode(cardMode), 0);
+
+// Conversation vs Meeting mode. Meeting (default) = passive listening, text-only output.
+// Conversation = two-way: audio voice replies, AI can ask clarifying questions.
+let convoMode = (() => {
+  try { return localStorage.getItem('ss_convo_mode') || 'meeting'; } catch { return 'meeting'; }
+})();
+function audioSourceForMode(mode) {
+  return mode === 'conversation' ? 'mic' : 'both';
+}
+function syncAudioSourceToMode() {
+  const source = audioSourceForMode(convoMode);
+  if (sourceSelect) {
+    sourceSelect.value = source;
+    sourceSelect.disabled = true;
+  }
+}
+function setConvoMode(mode) {
+  convoMode = (mode === 'conversation') ? 'conversation' : 'meeting';
+  try { localStorage.setItem('ss_convo_mode', convoMode); } catch {}
+  const meetBtn = document.getElementById('convo-meeting');
+  const convoBtn = document.getElementById('convo-1on1');
+  if (meetBtn && convoBtn) {
+    meetBtn.classList.toggle('on', convoMode === 'meeting');
+    convoBtn.classList.toggle('on', convoMode === 'conversation');
+    meetBtn.setAttribute('aria-pressed', convoMode === 'meeting' ? 'true' : 'false');
+    convoBtn.setAttribute('aria-pressed', convoMode === 'conversation' ? 'true' : 'false');
+  }
+  syncAudioSourceToMode();
+  if (liveSessionInProgress) {
+    logEvent('mode switch takes effect on next Start');
+  }
+}
+const convoMeetingBtn = document.getElementById('convo-meeting');
+const convoOneOnOneBtn = document.getElementById('convo-1on1');
+if (convoMeetingBtn) convoMeetingBtn.addEventListener('click', () => setConvoMode('meeting'));
+if (convoOneOnOneBtn) convoOneOnOneBtn.addEventListener('click', () => setConvoMode('conversation'));
+setTimeout(() => setConvoMode(convoMode), 0);
+
+// Buffer for the AI's spoken (audio) response transcript in conversation mode.
+let assistantSpokenBuffer = '';
+
+function finalizeAssistantTranscript(text) {
+  const trimmed = String(text || '').trim();
+  if (!trimmed) return;
+  appendTranscriptLine({ text: trimmed, speakerLabel: 'AI' });
+  void persistTranscript({
+    item_id: 'assistant-' + Date.now(),
+    transcript: trimmed,
+    speaker_label: 'AI',
+  });
+}
+
+function buildConversationInstructions(sessionConfig) {
+  const baseInstructions = sessionConfig.instructions || '';
+  return [
+    "You are the user's 1:1 ADO assistant. The user wants to talk through their Azure DevOps work — status updates, blockers, comments, reassignments.",
+    "",
+    "Voice + interaction rules:",
+    "  • Speak in short, casual responses (1-2 sentences max unless they ask for detail).",
+    "  • You CAN ask one clarifying question if a request is ambiguous (e.g. 'Which task did you mean — the deploy one or the schema one?').",
+    "  • When the user describes a concrete change, call dispatch_to_planner immediately and acknowledge briefly and naturally — like a person, not a system. Examples: 'Got it, let me look into that for you.' / 'Sure, on it.' / 'Yep, hang on a sec.' Vary your phrasing. NEVER say 'dispatching', 'queueing', 'forwarding to the planner', or any other system word.",
+    "  • When you receive a tool result confirming the planner finished, reply in one short, casual sentence. NEVER use the words 'queued', 'proposed action', 'activity panel', or 'dispatched'. Examples: 'Okay, I've got that ready for you whenever you want to look.' / 'Done — take a peek when you're ready.' / 'Nothing to change there.' Vary your phrasing.",
+    "  • DON'T narrate everything. Be a useful assistant, not a chatty one.",
+    "  • If the user asks a read-only question about ADO state (for example 'what are the active user stories?'), answer directly from the Known active work items context below when it contains the answer. Do NOT dispatch read-only questions to the planner.",
+    "  • If the user asks for specific ADO details that are not in your provided context, say you do not have that detail in this live context instead of promising that the planner will answer later.",
+    "",
+    "Natural-language style (CRITICAL):",
+    "  • Default to TITLES and short descriptions when referring to work items, NEVER bare ID numbers. Example: say 'Ontology setup, Data Access, and the CI workstream' — NOT 'numbers 304760, 304727, and 304742'.",
+    "  • Group items by theme or owner when possible ('three Ontology stories are active, plus a couple in Data Access').",
+    "  • Mention IDs only when the user explicitly asks ('what's the ID?', 'give me the numbers'), or when disambiguating two items with similar titles.",
+    "  • Keep lists short and conversational. If there are many items, summarize the categories first and offer to dig in: 'mostly Ontology and Data Access work — want me to walk through them?'",
+    "",
+    "Original guardrails about when to dispatch still apply (only dispatch for clear actionable items, not aspirations/questions):",
+    baseInstructions,
+  ].join("\n");
+}
+
+const ACTION_VERBS = {
+  add_comment: "Add comment",
+  update_status: "Update status",
+  close_task: "Close task",
+  assign: "Reassign",
+  create_task: "Create Task",
+  create_user_story: "Create User Story",
+  create_child_task: "Create child Task",
+  noop: "No change",
+};
+
+function renderActionCard(action) {
+  const target = activityActionsEl || activityEl;
+  clearEmpty(target);
+  let card = target.querySelector('[data-action-id="' + action.id + '"]');
+  const isNew = !card;
+  if (!card) {
+    card = document.createElement("div");
+    card.className = "action";
+    card.dataset.actionId = action.id;
+    target.prepend(card);
+    // Quiet mode: hide newly-created pending cards while a live session is in progress
+    if (isNew && cardMode === 'quiet' && liveSessionInProgress && action.status === 'pending') {
+      card.setAttribute('hidden', '');
+      quietQueue.add(action.id);
+      updateQuietBanner();
+    }
+  }
+  updateActivityLogDisclosure();
+  const isApplied = (action.status === "applied" || action.status === "auto_applied") && !action.undone_at;
+  const isPending = action.status === "pending";
+  const pill = statusPill(action);
+  // Parse the planner's arguments (the planner stores high-level intent in tool_args)
+  let parsedArgs = action.tool_args;
+  if (!parsedArgs && action.tool_args_json) {
+    try { parsedArgs = JSON.parse(action.tool_args_json); } catch { parsedArgs = {}; }
+  }
+  parsedArgs = parsedArgs || {};
+  const planAction = String(parsedArgs.action || action.tool_name || "").trim();
+  const verb = ACTION_VERBS[planAction] || planAction || "Action";
+  const wid = parsedArgs.work_item_id || parsedArgs.parent_work_item_id || "";
+  const matched = wid ? lookupWorkItem(wid) : null;
+  const titleLine = (() => {
+    const adoOrg = currentSessionConfig?.ado_organization || "";
+    const adoProj = currentSessionConfig?.ado_project || "";
+    const canLink = adoOrg && adoProj;
+    if (matched) {
+      const typeBadge = matched.type ? `<span class="wi-type">${escapeHtml(matched.type)}</span> ` : "";
+      const linkOrText = canLink
+        ? `<a href="https://dev.azure.com/${encodeURIComponent(adoOrg)}/${encodeURIComponent(adoProj)}/_workitems/edit/${escapeHtml(String(matched.id))}" target="_blank" rel="noreferrer">#${escapeHtml(String(matched.id))}</a>`
+        : `#${escapeHtml(String(matched.id))}`;
+      return `${typeBadge}${linkOrText} · ${escapeHtml(matched.title || "")}`;
+    }
+    if (wid) {
+      const linkOrText = canLink
+        ? `<a href="https://dev.azure.com/${encodeURIComponent(adoOrg)}/${encodeURIComponent(adoProj)}/_workitems/edit/${escapeHtml(String(wid))}" target="_blank" rel="noreferrer">#${escapeHtml(String(wid))}</a>`
+        : `#${escapeHtml(String(wid))}`;
+      return linkOrText;
+    }
+    if (parsedArgs.title) return `<em>${escapeHtml(parsedArgs.title)}</em> <span class="wi-new">(new)</span>`;
+    return '';
+  })();
+  const detailLine = (() => {
+    const parts = [];
+    if (parsedArgs.new_state) parts.push(`<strong>→ ${escapeHtml(parsedArgs.new_state)}</strong>`);
+    if (parsedArgs.assignee) parts.push(`assign to <strong>${escapeHtml(parsedArgs.assignee)}</strong>`);
+    if (parsedArgs.comment) parts.push(`"${escapeHtml(parsedArgs.comment.slice(0, 140))}"`);
+    if (parsedArgs.parent_work_item_id && planAction === "create_child_task") parts.push(`under #${escapeHtml(String(parsedArgs.parent_work_item_id))}`);
+    return parts.join(' · ');
+  })();
+  let actionButtons = "";
+  if (isPending) {
+    actionButtons = '<div class="actions">'
+      + '<button data-decision="approve">Apply</button>'
+      + '<button data-decision="reject" class="ghost">Dismiss</button>'
+      + '</div>';
+  } else if (isApplied) {
+    actionButtons = '<div class="actions">'
+      + '<button data-decision="undo" class="ghost">Revert</button>'
+      + '</div>';
+  }
+  const statusInline = statusSummary(action);
+  card.innerHTML = ''
+    + '<div class="name"><span class="verb">' + escapeHtml(verb) + '</span><span class="pill ' + pill.cls + '">' + pill.label + '</span></div>'
+    + (titleLine ? '<div class="wi-line">' + titleLine + '</div>' : '')
+    + (detailLine ? '<div class="detail-line">' + detailLine + '</div>' : '')
+    + (parsedArgs.summary && parsedArgs.summary !== detailLine ? '<div class="summary-line">' + escapeHtml(parsedArgs.summary) + '</div>' : '')
+    + (parsedArgs.rationale ? '<details class="why"><summary>Why?</summary><div>' + escapeHtml(parsedArgs.rationale) + '</div></details>' : '')
+    + (action.transcript_snippet ? '<details class="why"><summary>Context</summary><div>' + escapeHtml(action.transcript_snippet) + '</div></details>' : '')
+    + (statusInline ? '<div class="status-line">' + statusInline + '</div>' : '')
+    + actionButtons;
+  card.querySelectorAll("button[data-decision]").forEach((button) => {
+    button.addEventListener("click", () => decideAction(action.id, button.dataset.decision, card));
+  });
+  updateActivityLogDisclosure();
+}
+
+async function decideAction(id, decision, card) {
+  if (card.dataset.inFlight === "1") return;
+  card.dataset.inFlight = "1";
+  const buttons = [...card.querySelectorAll("button")];
+  buttons.forEach((button) => { button.disabled = true; });
+  const statusLine = card.querySelector('.status-line');
+  const pendingLabels = { approve: 'Applying…', reject: 'Dismissing…', undo: 'Reverting…' };
+  if (statusLine) statusLine.innerHTML = '<span style="color:#94a3b8">' + (pendingLabels[decision] || (decision + '…')) + '</span>';
+  try {
+    const response = await fetch(API_BASE + '/api/proposed-actions/' + encodeURIComponent(id) + '/' + decision, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const text = await response.text();
+    let payload = null;
+    try { payload = text ? JSON.parse(text) : null; } catch { payload = null; }
+    if (payload?.result) renderActionCard(payload.result);
+    if (!response.ok) throw new Error(payload?.detail || text || ('Request failed: ' + response.status));
+    if (payload?.result) {
+      logEvent(decision + ' action ' + payload.result.tool_name + ' (' + id + ')');
+    }
+  } catch (error) {
+    const statusLine2 = card.querySelector('.status-line');
+    if (statusLine2) {
+      statusLine2.innerHTML = '<span class="error">' + escapeHtml(error.message) + '</span>';
+    }
+    buttons.forEach((button) => { button.disabled = false; });
+  } finally {
+    card.dataset.inFlight = "";
+  }
+}
+
+async function persistToolCall(callId, toolName, argsText) {
+  const normalizedName = String(toolName || functionCallNames.get(callId) || "").trim();
+  if (!normalizedName) {
+    logEvent("tool call missing name for call_id=" + callId);
+    sendFunctionCallOutput(callId, { queued: false, error: "missing tool name" });
+    return;
+  }
+  let args = {};
+  const normalizedArgs = String(argsText || "").trim();
+  try {
+    args = normalizedArgs ? JSON.parse(normalizedArgs) : {};
+  } catch (error) {
+    logEvent('invalid function arguments for ' + normalizedName + ': ' + error.message);
+    sendFunctionCallOutput(callId, { queued: false, error: "invalid JSON arguments" });
+    return;
+  }
+  // The realtime model only has one tool now: dispatch_to_planner. Route accordingly.
+  if (normalizedName === "dispatch_to_planner") {
+    try {
+      const result = await apiFetch('/api/listen/dispatch', {
+        method: 'POST',
+        body: JSON.stringify({
+          session_id: currentSessionId,
+          intent: args.intent || '',
+          suspected_kind: args.suspected_kind || '',
+          transcript_context: getTranscriptContext(),
+        }),
+      });
+      logEvent('dispatched intent: "' + (args.intent || '').slice(0, 80) + '" (job ' + (result?.job_id || '?') + ')');
+      sendFunctionCallOutput(callId, { queued: true, job_id: result?.job_id, note: "Background planner will investigate ADO and produce a proposed action." });
+    } catch (error) {
+      logEvent('dispatch failed: ' + error.message);
+      sendFunctionCallOutput(callId, { queued: false, error: error.message });
+    } finally {
+      functionCallArgs.delete(callId);
+      functionCallNames.delete(callId);
+    }
+    return;
+  }
+  // Legacy path (e.g. older sessions or test invocations of propose_status_update directly).
+  try {
+    const action = await apiFetch('/api/listen/proposed-action', {
+      method: 'POST',
+      body: JSON.stringify({
+        session_id: currentSessionId,
+        tool_name: normalizedName,
+        args,
+        transcript_context: getTranscriptContext(),
+      }),
+    });
+    renderActionCard(action);
+    logEvent('queued tool call ' + normalizedName + ' (' + action.id + ')');
+    sendFunctionCallOutput(callId, { queued: true, proposed_action_id: action.id, status: action.status });
+  } catch (error) {
+    logEvent('failed to queue tool call ' + normalizedName + ': ' + error.message);
+    sendFunctionCallOutput(callId, { queued: false, error: error.message });
+  } finally {
+    functionCallArgs.delete(callId);
+    functionCallNames.delete(callId);
+  }
+}
+
+// Poll planner events for the active session and render them in the Activity pane.
+let plannerEventCursor = 0;
+let plannerPollTimer = null;
+async function pollPlannerEvents() {
+  if (!liveSessionInProgress || !currentSessionId) return;
+  try {
+    const result = await apiFetch('/api/listen/events?session_id=' + encodeURIComponent(currentSessionId) + '&since=' + plannerEventCursor);
+    if (!result) return;
+    const events = Array.isArray(result.events) ? result.events : [];
+    for (const evt of events) {
+      renderPlannerEvent(evt);
+    }
+    if (typeof result.cursor === 'number') plannerEventCursor = result.cursor;
+    // Refresh action cards if a proposal was added (single or multi)
+    if (events.some((e) => e.type === 'done' && ((e.proposed_action_id) || (e.proposed_action_ids && e.proposed_action_ids.length > 0) || (typeof e.proposal_count === 'number' && e.proposal_count > 0)))) {
+      void refreshActionsForCurrentSession();
+    }
+  } catch (error) {
+    // silent; will retry
+  }
+}
+function startPlannerPolling() {
+  stopPlannerPolling();
+  plannerEventCursor = 0;
+  plannerPollTimer = setInterval(pollPlannerEvents, 1500);
+}
+function stopPlannerPolling() {
+  if (plannerPollTimer) clearInterval(plannerPollTimer);
+  plannerPollTimer = null;
+}
+function renderPlannerEvent(evt) {
+  const jobShort = evt.job_id ? ' [' + String(evt.job_id).slice(-5) + ']' : '';
+  switch (evt.type) {
+    case 'dispatch':
+      logEvent('🧠 planner' + jobShort + ' started: "' + String(evt.intent || '').slice(0, 100) + '"');
+      break;
+    case 'started':
+      break;
+    case 'thinking':
+      if (evt.message) logEvent('  planner' + jobShort + ' · ' + evt.message);
+      break;
+    case 'tool_call':
+      logEvent('  planner' + jobShort + ' → ' + evt.name + '(' + JSON.stringify(evt.args || {}).slice(0, 80) + ')');
+      break;
+    case 'tool_result':
+      logEvent('  planner' + jobShort + ' ← ' + evt.name + ': ' + String(evt.summary || '').slice(0, 120));
+      break;
+    case 'tool_error':
+      logEvent('  planner' + jobShort + ' ✗ ' + evt.name + ': ' + (evt.error || ''));
+      break;
+    case 'proposal':
+      logEvent('  planner' + jobShort + ' proposal ' + (evt.index ? '#' + evt.index : '') + ': ' + (evt.action || '?'));
+      break;
+    case 'done':
+      if (typeof evt.proposal_count === 'number' && evt.proposal_count > 1) {
+        logEvent('✓ planner' + jobShort + ' done (' + evt.proposal_count + ' proposals)');
+      } else {
+        logEvent('✓ planner' + jobShort + ' done' + (evt.decision ? ' (' + evt.decision + ')' : ''));
+      }
+      // In conversation mode, ask the realtime model to verbally acknowledge the result
+      if (convoMode === 'conversation' && dc && dc.readyState === 'open') {
+        const count = Number(evt.proposal_count ?? 0);
+        let internalNote;
+        if (count > 1) internalNote = `the planner finished and drafted ${count} suggested changes that are now waiting in the side panel for the user to review`;
+        else if (count === 1) internalNote = `the planner finished and drafted one suggested change that is now waiting in the side panel for the user to review`;
+        else internalNote = `the planner finished and decided nothing needs to change for that one`;
+        try {
+          dc.send(JSON.stringify({
+            type: 'conversation.item.create',
+            item: {
+              type: 'message',
+              role: 'user',
+              content: [{ type: 'input_text', text:
+                "(internal status update — do NOT read this verbatim) " + internalNote + ". "
+                + "Reply to the user in ONE short, natural, casual sentence. "
+                + "Do NOT use the words 'queued', 'proposed action', 'activity panel', or 'dispatched'. "
+                + "Sound like a person, not a system: e.g. 'Okay, I've got that ready for you to look at whenever' or 'Done — take a look when you're ready' or 'Nothing to change there.' Vary your phrasing."
+              }],
+            },
+          }));
+          dc.send(JSON.stringify({ type: 'response.create' }));
+        } catch (e) {
+          // non-fatal
+        }
+      }
+      break;
+    case 'error':
+      logEvent('✗ planner' + jobShort + ' error: ' + (evt.message || ''));
+      break;
+    default:
+      break;
+  }
+}
+async function refreshActionsForCurrentSession() {
+  if (!currentSessionId) return;
+  try {
+    const actions = await apiFetch('/api/meetings/' + encodeURIComponent(currentSessionId) + '/proposed-actions');
+    if (!Array.isArray(actions)) return;
+    actions.sort((a, b) => (a.created_at ?? 0) - (b.created_at ?? 0));
+    for (const a of actions) renderActionCard(a);
+  } catch {}
+}
+
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+let reconnectTimer = null;
+
+async function connectWebRtc(sessionConfig, sourceStream) {
+  pc = new RTCPeerConnection();
+  sourceStream.getAudioTracks().forEach((track) => pc.addTrack(track, sourceStream));
+
+  const sinkAudio = document.createElement('audio');
+  sinkAudio.muted = (convoMode !== 'conversation');
+  sinkAudio.autoplay = true;
+  pc.ontrack = (event) => { sinkAudio.srcObject = event.streams[0]; };
+
+  dc = pc.createDataChannel('realtime-channel');
+  dc.addEventListener('open', () => {
+    logEvent('data channel open (mode=' + convoMode + ')');
+    reconnectAttempts = 0;
+    const isConvo = (convoMode === 'conversation');
+    const instructions = isConvo
+      ? buildConversationInstructions(sessionConfig)
+      : sessionConfig.instructions;
+    const sessionUpdate = {
+      type: 'session.update',
+      session: {
+        type: 'realtime',
+        output_modalities: isConvo ? ['audio'] : ['text'],
+        instructions,
+        tools: sessionConfig.tools || [],
+        tool_choice: 'auto',
+        audio: {
+          input: {
+            transcription: { model: 'gpt-realtime-whisper' },
+            turn_detection: {
+              type: 'server_vad',
+              threshold: 0.5,
+              prefix_padding_ms: 300,
+              silence_duration_ms: 500,
+              create_response: true,
+            },
+          },
+          output: isConvo ? {
+            voice: 'alloy',
+            format: { type: 'audio/pcm', rate: 24000 },
+          } : undefined,
+        },
+      },
+    };
+    dc.send(JSON.stringify(sessionUpdate));
+    if (isConvo) {
+      // Trigger an initial greeting so the user knows they can talk.
+      dc.send(JSON.stringify({
+        type: 'response.create',
+        response: {
+          instructions: "Briefly greet the user (1 short sentence) and let them know you're ready to talk through their work items. Be casual and concise.",
+        },
+      }));
+    }
+  });
+  dc.addEventListener('message', (event) => {
+    let payload;
+    try { payload = JSON.parse(event.data); } catch { return; }
+    handleEvent(payload);
+  });
+  dc.addEventListener('close', () => {
+    if (!liveSessionInProgress) {
+      setStatus('', 'disconnected');
+    }
+  });
+
+  pc.onconnectionstatechange = () => {
+    logEvent('pc state=' + pc.connectionState);
+    if (pc.connectionState === 'connected') setStatus('connected', 'connected — listening');
+    if ((pc.connectionState === 'failed' || pc.connectionState === 'disconnected') && liveSessionInProgress) {
+      scheduleReconnect();
+    }
+  };
+
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+
+  const response = await fetch(API_BASE + '/api/realtime/connect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sdp: offer.sdp }),
+  });
+  if (!response.ok) {
+    throw new Error('connect failed ' + response.status + ': ' + await response.text());
+  }
+  const contentType = response.headers.get('content-type') || '';
+  let answerSdp;
+  if (contentType.includes('application/sdp')) {
+    answerSdp = await response.text();
+  } else {
+    const text = await response.text();
+    try {
+      const payload = JSON.parse(text);
+      answerSdp = payload.result ?? payload.sdpAnswer ?? text;
+    } catch {
+      answerSdp = text;
+    }
+  }
+  await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+}
+
+function scheduleReconnect() {
+  if (!liveSessionInProgress) return;
+  if (reconnectTimer) return;
+  if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    setStatus('error', 'connection lost — max retries reached');
+    logEvent('reconnect: giving up after ' + reconnectAttempts + ' attempts');
+    return;
+  }
+  reconnectAttempts++;
+  const delayMs = Math.min(15000, 500 * Math.pow(2, reconnectAttempts - 1));
+  setStatus('connecting', 'reconnecting in ' + Math.round(delayMs / 1000) + 's (attempt ' + reconnectAttempts + '/' + MAX_RECONNECT_ATTEMPTS + ')');
+  logEvent('reconnect scheduled in ' + delayMs + 'ms (attempt ' + reconnectAttempts + ')');
+  reconnectTimer = setTimeout(async () => {
+    reconnectTimer = null;
+    if (!liveSessionInProgress) return;
+    try {
+      try { dc?.close(); } catch {}
+      try { pc?.close(); } catch {}
+      dc = null; pc = null;
+      setStatus('connecting', 'reconnecting to Azure realtime…');
+      // Re-establish using the same audio stream (mic/system already captured)
+      await connectWebRtc(currentSessionConfig, stream);
+    } catch (error) {
+      logEvent('reconnect failed: ' + error.message);
+      scheduleReconnect();
+    }
+  }, delayMs);
+}
+
+async function start() {
+  if (pc || stream) stop();
+  startBtn.disabled = true;
+  stopBtn.disabled = true;
+  viewingSessionId = null;
+  resetSessionUi();
+  setStatus('connecting', 'initializing…');
+  syncAudioSourceToMode();
+  const source = audioSourceForMode(convoMode);
+  try {
+    const [sessionConfig, sessionInfo] = await Promise.all([
+      apiFetch('/api/listen/session-config'),
+      apiFetch('/api/listen/sessions', { method: 'POST', body: '{}' }),
+    ]);
+    currentSessionConfig = sessionConfig;
+    setSessionTag(sessionInfo.session_id);
+    liveSessionInProgress = true;
+    reconnectAttempts = 0;
+    startPlannerPolling();
+    refreshSessions();
+    const prefetched = Array.isArray(sessionConfig.prefetched_work_items) ? sessionConfig.prefetched_work_items : [];
+    renderContextBanner(prefetched);
+    logEvent('created session ' + sessionInfo.session_id + ' with ' + (sessionConfig.tools || []).length + ' tools, ' + prefetched.length + ' prefetched work items');
+
+    setStatus('connecting', 'requesting audio…');
+    let displayStream = null;
+    let micStream = null;
+    if (source === 'display' || source === 'both') {
+      try {
+        displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+      } catch (error) {
+        throw new Error('Failed to capture system audio: ' + error.message + ' — if you are in a browser, pick Entire Screen and enable Share system audio.');
+      }
+      const audioTracks = displayStream.getAudioTracks();
+      logEvent('displayMedia tracks: video=' + displayStream.getVideoTracks().length + ' audio=' + audioTracks.length);
+      if (audioTracks.length === 0) {
+        throw new Error('No system audio captured. On Windows, share the entire screen and enable system audio.');
+      }
+      displayStream.getVideoTracks().forEach((track) => track.stop());
+    }
+    if (source === 'mic' || source === 'both') {
+      micStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+      logEvent('microphone audio tracks: ' + micStream.getAudioTracks().length);
+    }
+    if (source === 'both') {
+      audioCtx = new AudioContext({ sampleRate: 48000 });
+      const dest = audioCtx.createMediaStreamDestination();
+      const micSrc = audioCtx.createMediaStreamSource(micStream);
+      const sysSrc = audioCtx.createMediaStreamSource(displayStream);
+      const micGain = audioCtx.createGain(); micGain.gain.value = 1.0;
+      const sysGain = audioCtx.createGain(); sysGain.gain.value = 0.85;
+      micSrc.connect(micGain).connect(dest);
+      sysSrc.connect(sysGain).connect(dest);
+      stream = dest.stream;
+      stream._mixSources = { micStream, displayStream, audioCtx };
+      logEvent('mixed mic + system into single audio track');
+    } else {
+      stream = displayStream || micStream;
+    }
+
+    setStatus('connecting', 'negotiating with Azure realtime…');
+    await connectWebRtc(sessionConfig, stream);
+    setStatus('connected', 'connected — listening');
+    stopBtn.disabled = false;
+  } catch (error) {
+    console.error(error);
+    setStatus('error', error.message || String(error));
+    logEvent('ERROR ' + (error.message || error));
+    liveSessionInProgress = false;
+    stop({ preserveStatus: true });
+  }
+}
+
+function handleEvent(evt) {
+  switch (evt.type) {
+    case 'session.created':
+      logEvent('session.created');
+      break;
+    case 'session.updated':
+      logEvent('session.updated');
+      break;
+    case 'input_audio_buffer.speech_started':
+      if (evt.item_id) getOrCreatePartial(evt.item_id, convoMode === 'conversation' ? 'You' : '');
+      break;
+    case 'conversation.item.input_audio_transcription.delta':
+      if (evt.item_id && typeof evt.delta === 'string') {
+        const el = getOrCreatePartial(evt.item_id, convoMode === 'conversation' ? 'You' : '');
+        el.querySelector('.text').textContent += evt.delta;
+      }
+      break;
+    case 'conversation.item.input_audio_transcription.completed':
+      finalizeTranscript(evt);
+      break;
+    case 'conversation.item.input_audio_transcription.failed':
+      logEvent('transcription failed ' + JSON.stringify(evt.error || {}));
+      break;
+    case 'response.output_item.added':
+    case 'response.output_item.done':
+      recordFunctionCallItem(evt);
+      break;
+    case 'response.function_call_arguments.delta': {
+      const callId = evt.call_id;
+      if (!callId) break;
+      const current = functionCallArgs.get(callId) || '';
+      functionCallArgs.set(callId, current + String(evt.delta || ''));
+      if (evt.name) functionCallNames.set(callId, evt.name);
+      break;
+    }
+    case 'response.function_call_arguments.done': {
+      const callId = evt.call_id;
+      if (!callId) break;
+      const argsText = (typeof evt.arguments === 'string' && evt.arguments.trim())
+        ? evt.arguments
+        : (functionCallArgs.get(callId) || '');
+      const toolName = evt.name || functionCallNames.get(callId) || '';
+      void persistToolCall(callId, toolName, argsText);
+      break;
+    }
+    case 'response.text.delta':
+      if (evt.delta && evt.delta.trim() && convoMode !== 'conversation') {
+        logEvent('assistant text suppressed: ' + evt.delta.trim());
+      }
+      break;
+    case 'response.output_audio_transcript.delta':
+    case 'response.audio_transcript.delta':
+      // Buffer assistant audio transcript (what the AI is saying) in conversation mode
+      if (convoMode === 'conversation' && evt.delta) {
+        assistantSpokenBuffer += evt.delta;
+      }
+      break;
+    case 'response.output_audio_transcript.done':
+    case 'response.audio_transcript.done':
+      if (convoMode === 'conversation' && (assistantSpokenBuffer.trim() || String(evt.transcript || '').trim())) {
+        finalizeAssistantTranscript(assistantSpokenBuffer || evt.transcript);
+        assistantSpokenBuffer = '';
+      }
+      break;
+    case 'error':
+      logEvent('error ' + JSON.stringify(evt.error || evt));
+      break;
+    default:
+      break;
+  }
+}
+
+function stop({ preserveStatus = false, skipSummary = false } = {}) {
+  const endedSessionId = liveSessionInProgress ? currentSessionId : null;
+  liveSessionInProgress = false;
+  // Reveal any quiet-queued cards so the user sees everything at end of call
+  if (quietQueue.size > 0) revealQuietCards();
+  stopPlannerPolling();
+  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+  reconnectAttempts = 0;
+  try { dc?.close(); } catch {}
+  try { pc?.close(); } catch {}
+  try { stream?.getTracks().forEach((track) => track.stop()); } catch {}
+  try {
+    const mix = stream?._mixSources;
+    if (mix) {
+      mix.micStream?.getTracks().forEach((t) => t.stop());
+      mix.displayStream?.getTracks().forEach((t) => t.stop());
+      mix.audioCtx?.close();
+    }
+  } catch {}
+  try { audioCtx?.close(); } catch {}
+  pc = null;
+  dc = null;
+  stream = null;
+  audioCtx = null;
+  currentSessionConfig = null;
+  if (!preserveStatus) {
+    setStatus('', 'idle');
+  }
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+  if (endedSessionId && !skipSummary) {
+    void endSession(endedSessionId);
+  }
+}
+
+async function endSession(sessionId) {
+  // Mark meeting as ended
+  try {
+    await apiFetch('/api/meeting/' + encodeURIComponent(sessionId), {
+      method: 'PUT',
+      body: JSON.stringify({ end_at: Date.now() / 1000 }),
+    });
+    logEvent('session ' + sessionId + ' marked ended');
+  } catch (error) {
+    logEvent('failed to mark session ended: ' + error.message);
+  }
+  // Trigger summary generation (non-blocking, best-effort)
+  try {
+    const transcripts = await apiFetch('/api/meeting/' + encodeURIComponent(sessionId) + '/transcripts');
+    if (Array.isArray(transcripts) && transcripts.length >= 3) {
+      setStatus('connecting', 'generating summary…');
+      showSummaryCard('', { loading: true });
+      enableChat(sessionId);
+      try {
+        const summary = await apiFetch('/api/meeting/' + encodeURIComponent(sessionId) + '/summary', {
+          method: 'POST', body: '{}',
+        });
+        showSummaryCard(summary?.summary || summary?.text || '');
+        setStatus('', 'idle');
+      } catch (error) {
+        showSummaryCard('', { error: 'Summary generation failed: ' + error.message });
+        setStatus('', 'idle');
+      }
+    } else if (Array.isArray(transcripts) && transcripts.length > 0) {
+      // Still allow chat even without a summary if there are at least some transcripts
+      enableChat(sessionId);
+    }
+  } catch (error) {
+    logEvent('summary skipped: ' + error.message);
+  }
+  refreshSessions();
+}
+
+const summaryCardEl = document.getElementById('summary-card');
+const summaryBodyEl = summaryCardEl?.querySelector('.body');
+const chatBoxEl = document.getElementById('chat-box');
+const chatHistoryEl = document.getElementById('chat-history');
+const chatInputEl = document.getElementById('chat-input');
+const chatSendBtn = document.getElementById('chat-send');
+let chatMeetingId = null;
+const chatHistory = []; // [{role:'user'|'assistant', content}]
+
+function showSummaryCard(text, opts = {}) {
+  if (!summaryCardEl || !summaryBodyEl) return;
+  if (!text && !opts.loading && !opts.error) {
+    summaryCardEl.hidden = true;
+    summaryBodyEl.classList.remove('loading');
+    summaryBodyEl.textContent = '';
+    return;
+  }
+  summaryCardEl.hidden = false;
+  if (opts.loading) {
+    summaryBodyEl.classList.add('loading');
+    summaryBodyEl.textContent = 'Generating summary…';
+  } else if (opts.error) {
+    summaryBodyEl.classList.remove('loading');
+    summaryBodyEl.innerHTML = '<span class="error">' + escapeHtml(opts.error) + '</span>';
+  } else {
+    summaryBodyEl.classList.remove('loading');
+    summaryBodyEl.textContent = text;
+  }
+}
+
+function hideSummaryCard() { showSummaryCard(''); }
+
+function enableChat(meetingId) {
+  chatMeetingId = meetingId || null;
+  chatHistory.length = 0;
+  if (chatHistoryEl) chatHistoryEl.innerHTML = '<div class="chat-empty">Try: "what did we decide?", "any blockers?", "list action items by owner".</div>';
+  if (chatInputEl) { chatInputEl.value = ''; chatInputEl.disabled = !chatMeetingId; }
+  if (chatSendBtn) chatSendBtn.disabled = !chatMeetingId;
+  if (chatBoxEl) chatBoxEl.hidden = !chatMeetingId;
+}
+
+function disableChat() {
+  chatMeetingId = null;
+  chatHistory.length = 0;
+  if (chatBoxEl) chatBoxEl.hidden = true;
+}
+
+function renderChatMessage(role, content, opts = {}) {
+  if (!chatHistoryEl) return;
+  const empty = chatHistoryEl.querySelector('.chat-empty');
+  if (empty) empty.remove();
+  const div = document.createElement('div');
+  div.className = 'msg ' + (opts.error ? 'error' : role);
+  div.innerHTML = '<span class="role">' + escapeHtml(opts.error ? 'error' : role) + '</span><span></span>';
+  div.querySelector('span:last-child').textContent = content;
+  chatHistoryEl.appendChild(div);
+  chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  return div;
+}
+
+async function sendChat() {
+  if (!chatMeetingId || !chatInputEl) return;
+  const text = chatInputEl.value.trim();
+  if (!text) return;
+  chatInputEl.value = '';
+  chatInputEl.disabled = true;
+  chatSendBtn.disabled = true;
+  renderChatMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  const thinkingEl = renderChatMessage('assistant', '…');
+  try {
+    const result = await apiFetch('/api/meeting/' + encodeURIComponent(chatMeetingId) + '/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        message: text,
+        history: chatHistory.slice(0, -1), // exclude just-pushed user message; server adds it
+      }),
+    });
+    const reply = String(result?.reply ?? '').trim();
+    if (thinkingEl) {
+      thinkingEl.querySelector('span:last-child').textContent = reply || '(no response)';
+    }
+    if (reply) chatHistory.push({ role: 'assistant', content: reply });
+  } catch (error) {
+    if (thinkingEl) thinkingEl.remove();
+    renderChatMessage('assistant', error.message || 'Chat failed', { error: true });
+  } finally {
+    chatInputEl.disabled = false;
+    chatSendBtn.disabled = false;
+    chatInputEl.focus();
+  }
+}
+
+if (chatSendBtn) chatSendBtn.addEventListener('click', sendChat);
+if (chatInputEl) {
+  chatInputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChat();
+    }
+  });
+}
+
+startBtn.addEventListener('click', () => {
+  if (liveSessionInProgress || pc || stream) stop();
+  else start();
+});
+stopBtn.addEventListener('click', stop);
+window.addEventListener('beforeunload', () => stop({ skipSummary: true }));
+</script>
+</body>
+</html>

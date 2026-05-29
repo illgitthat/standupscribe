@@ -1,0 +1,77 @@
+{
+  "name": "standupscribe",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Listens to engineering status calls and proposes Azure DevOps work item updates via Azure OpenAI Realtime.",
+  "author": "Adam Bloom",
+  "main": "src/main.js",
+  "type": "commonjs",
+  "scripts": {
+    "clean:dist": "node scripts/clean-dist.js",
+    "clean:unpacked": "node scripts/clean-unpacked.js",
+    "start": "electron .",
+    "package": "node scripts/clean-dist.js && electron-builder --win nsis && node scripts/clean-unpacked.js",
+    "package:dir": "node scripts/clean-dist.js && electron-builder --win dir",
+    "package:portable": "node scripts/clean-dist.js && electron-builder --win portable && node scripts/clean-unpacked.js",
+    "package:release": "node scripts/clean-dist.js && electron-builder --win nsis portable && node scripts/clean-unpacked.js",
+    "verify:api": "node src/smoke-test.js"
+  },
+  "devDependencies": {
+    "electron": "41.3.0",
+    "electron-builder": "26.8.1"
+  },
+  "build": {
+    "appId": "com.standupscribe.desktop",
+    "productName": "Standup Scribe",
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "icon": "ui/assets/standup-scribe.ico",
+    "electronLanguages": [
+      "en-US",
+      "en-GB"
+    ],
+    "files": [
+      "package.json",
+      "src/**/*",
+      "ui/**/*",
+      "!**/.env",
+      "!**/.env.*",
+      "!**/.dev.vars.reference",
+      "!**/.reference-realtime-poc/**",
+      "!**/__test*",
+      "!**/__test*/**",
+      "!dist/**/*",
+      "!local-data/**/*",
+      "!models/**/*",
+      "!node_modules/**/*",
+      "!src/smoke-test.js",
+      "!test_profile/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "ui/assets/standup-scribe.ico",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "ui/assets/standup-scribe.ico",
+      "shortcutName": "Standup Scribe",
+      "uninstallerIcon": "ui/assets/standup-scribe.ico",
+      "uninstallDisplayName": "Standup Scribe",
+      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}-${arch}.${ext}"
+    }
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  }
+}
