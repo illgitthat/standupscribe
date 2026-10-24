@@ -17,8 +17,8 @@
     "verify:api": "node src/smoke-test.js"
   },
   "devDependencies": {
-    "electron": "41.3.0",
-    "electron-builder": "26.8.1"
+    "electron": "45.0.0",
+    "electron-builder": "26.18.0"
   },
   "build": {
     "appId": "com.standupscribe.desktop",
@@ -72,6 +72,6 @@
     }
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0"
+    "@modelcontextprotocol/sdk": "^1.32.2"
   }
 }
